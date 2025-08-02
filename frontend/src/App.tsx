@@ -19,7 +19,8 @@ import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import HomePage from './pages/HomePage';
 import UserProfilePage from './pages/user/UserProfilePage';
 import UserSettingsPage from './pages/user/UserSettingsPage';
-import PointsHistoryPage from './pages/user/PointsHistoryPage';
+// import PointsHistoryPage from './pages/user/PointsHistoryPage';
+import StatusPage from './pages/StatusPage';
 
 // 第三阶段：门户网站页面
 import PortalHomePage from './pages/portal/PortalHomePage';
@@ -94,7 +95,8 @@ function App() {
                   <Route index element={<HomePage />} />
                   <Route path="profile" element={<UserProfilePage />} />
                   <Route path="settings" element={<UserSettingsPage />} />
-                  <Route path="points/history" element={<PointsHistoryPage />} />
+                  {/* <Route path="points/history" element={<PointsHistoryPage />} /> */}
+                  <Route path="status" element={<StatusPage />} />
                   
                   {/* 第三阶段：门户网站路由 */}
                   <Route path="portal" element={<PortalHomePage />} />

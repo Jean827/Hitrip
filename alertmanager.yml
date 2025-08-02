@@ -1,0 +1,35 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alert@hainan-tourism.com'
+  smtp_auth_username: 'your-email@gmail.com'
+  smtp_auth_password: 'your-app-password'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5000/api/alerts'
+        send_resolved: true
+
+  - name: 'email'
+    email_configs:
+      - to: 'admin@hainan-tourism.com'
+        send_resolved: true
+
+  - name: 'sms'
+    webhook_configs:
+      - url: 'http://sms-gateway.com/send'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname'] 

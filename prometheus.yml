@@ -3,93 +3,38 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "alert_rules.yml"
 
-scrape_configs:
-  # 监控Prometheus自身
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  # 监控后端API服务
-  - job_name: 'backend'
-    static_configs:
-      - targets: ['backend:3000']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # 监控Nginx
-  - job_name: 'nginx'
-    static_configs:
-      - targets: ['nginx:80']
-    metrics_path: '/nginx_status'
-    scrape_interval: 10s
-
-  # 监控PostgreSQL
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres:5432']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # 监控Redis
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis:6379']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-
-  # 监控Node.js应用
-  - job_name: 'nodejs'
-    static_configs:
-      - targets: ['backend:3000']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-    scrape_timeout: 5s
-
-  # 监控系统资源
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 15s
-
-  # 监控Docker容器
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    scrape_interval: 15s
-
-  # 监控Elasticsearch
-  - job_name: 'elasticsearch'
-    static_configs:
-      - targets: ['elasticsearch:9200']
-    metrics_path: '/_prometheus/metrics'
-    scrape_interval: 30s
-
-  # 监控Logstash
-  - job_name: 'logstash'
-    static_configs:
-      - targets: ['logstash:9600']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-# 告警规则
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+          - localhost:9093
 
-# 记录规则
-rule_files:
-  - "alert_rules.yml"
+scrape_configs:
+  # 系统监控
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
 
-# 远程写入配置（可选）
-# remote_write:
-#   - url: "http://remote-storage:9201/api/v1/push"
+  # 应用监控
+  - job_name: 'hainan-tourism-api'
+    static_configs:
+      - targets: ['localhost:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
 
-# 远程读取配置（可选）
-# remote_read:
-#   - url: "http://remote-storage:9201/api/v1/read" 
+  # 数据库监控
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['localhost:9187']
+
+  # Redis监控
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['localhost:9121']
+
+  # Nginx监控
+  - job_name: 'nginx-exporter'
+    static_configs:
+      - targets: ['localhost:9113'] 

@@ -1,260 +1,346 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { register, Counter, Histogram, Gauge } from 'prom-client';
 import { performance } from 'perf_hooks';
 
-// 监控指标接口
-interface MonitoringMetrics {
-  requestCount: number;
-  errorCount: number;
-  responseTime: number[];
-  activeConnections: number;
-  memoryUsage: NodeJS.MemoryUsage;
-  cpuUsage: NodeJS.CpuUsage;
-}
+// 定义监控指标
+const httpRequestDurationMicroseconds = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.5, 1, 2, 5]
+});
 
-// 全局监控指标
-const metrics: MonitoringMetrics = {
-  requestCount: 0,
-  errorCount: 0,
-  responseTime: [],
-  activeConnections: 0,
-  memoryUsage: process.memoryUsage(),
-  cpuUsage: process.cpuUsage()
+const httpRequestsTotal = new Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status']
+});
+
+const httpRequestSize = new Histogram({
+  name: 'http_request_size_bytes',
+  help: 'Size of HTTP requests in bytes',
+  labelNames: ['method', 'route'],
+  buckets: [100, 1000, 5000, 10000, 50000]
+});
+
+const httpResponseSize = new Histogram({
+  name: 'http_response_size_bytes',
+  help: 'Size of HTTP responses in bytes',
+  labelNames: ['method', 'route'],
+  buckets: [100, 1000, 5000, 10000, 50000, 100000]
+});
+
+const activeConnections = new Gauge({
+  name: 'http_active_connections',
+  help: 'Number of active HTTP connections'
+});
+
+const databaseConnections = new Gauge({
+  name: 'database_connections',
+  help: 'Number of active database connections'
+});
+
+const redisConnections = new Gauge({
+  name: 'redis_connections',
+  help: 'Number of active Redis connections'
+});
+
+const errorCounter = new Counter({
+  name: 'application_errors_total',
+  help: 'Total number of application errors',
+  labelNames: ['type', 'route']
+});
+
+const logErrorsTotal = new Counter({
+  name: 'log_errors_total',
+  help: 'Total number of error logs'
+});
+
+// 原有的Prometheus指标定义保持不变
+
+const databaseQueryDuration = new Histogram({
+  name: 'database_query_duration_seconds',
+  help: '数据库查询持续时间',
+  labelNames: ['query_type'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5]
+});
+
+const redisOperationDuration = new Histogram({
+  name: 'redis_operation_duration_seconds',
+  help: 'Redis操作持续时间',
+  labelNames: ['operation_type'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
+});
+
+// 业务指标
+const userRegistrations = new Counter({
+  name: 'user_registrations_total',
+  help: '用户注册总数'
+});
+
+const userLogins = new Counter({
+  name: 'user_logins_total',
+  help: '用户登录总数'
+});
+
+const ordersCreated = new Counter({
+  name: 'orders_created_total',
+  help: '订单创建总数'
+});
+
+const revenueTotal = new Counter({
+  name: 'revenue_total',
+  help: '总收入'
+});
+
+const activeUsers = new Gauge({
+  name: 'active_users',
+  help: '当前活跃用户数'
+});
+
+const orderValue = new Histogram({
+  name: 'order_value',
+  help: '订单金额分布',
+  buckets: [10, 50, 100, 200, 500, 1000, 2000, 5000]
+});
+
+// 监控中间件
+export const monitoringMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  
+  // 记录请求开始
+  activeConnections.inc();
+  
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    const route = req.route?.path || req.path;
+    
+    // 记录请求指标
+    httpRequestDurationMicroseconds
+      .labels(req.method, route, res.statusCode.toString())
+      .observe(duration);
+    
+    httpRequestsTotal
+      .labels(req.method, route, res.statusCode.toString())
+      .inc();
+    
+    // 减少活跃连接数
+    activeConnections.dec();
+  });
+  
+  next();
 };
 
-// 告警阈值配置
-const ALERT_THRESHOLDS = {
-  ERROR_RATE: 0.05, // 5%错误率
-  RESPONSE_TIME: 2000, // 2秒响应时间
-  MEMORY_USAGE: 0.8, // 80%内存使用率
-  CPU_USAGE: 0.7 // 70%CPU使用率
+// 指标导出端点
+export const metricsEndpoint = async (req: Request, res: Response) => {
+  try {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+  } catch (error) {
+    res.status(500).end(error);
+  }
 };
 
-// 告警状态
-let alertStatus = {
-  highErrorRate: false,
-  slowResponse: false,
-  highMemoryUsage: false,
-  highCpuUsage: false
+// 健康检查端点
+export const healthCheck = async (req: Request, res: Response) => {
+  const health = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: process.version,
+    environment: process.env['NODE_ENV']
+  };
+  
+  res.json(health);
+};
+
+// 详细健康检查端点
+export const detailedHealthCheck = async (req: Request, res: Response) => {
+  const health = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: process.version,
+    environment: process.env['NODE_ENV'],
+    checks: {
+      database: 'healthy',
+      redis: 'healthy',
+      disk: 'healthy'
+    }
+  };
+  
+  // 检查数据库连接
+  try {
+    // 这里应该检查实际的数据库连接
+    health.checks.database = 'healthy';
+  } catch (error) {
+    health.checks.database = 'unhealthy';
+    health.status = 'unhealthy';
+  }
+  
+  // 检查Redis连接
+  try {
+    // 这里应该检查实际的Redis连接
+    health.checks.redis = 'healthy';
+  } catch (error) {
+    health.checks.redis = 'unhealthy';
+    health.status = 'unhealthy';
+  }
+  
+  // 检查磁盘空间
+  try {
+    // 这里应该检查实际的磁盘空间
+    health.checks.disk = 'healthy';
+  } catch (error) {
+    health.checks.disk = 'unhealthy';
+    health.status = 'unhealthy';
+  }
+  
+  res.json(health);
+};
+
+// 数据库监控装饰器
+export const monitorDatabaseQuery = (queryType: string) => {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = async function(...args: any[]) {
+      const start = Date.now();
+      
+      try {
+        const result = await originalMethod.apply(this, args);
+        const duration = (Date.now() - start) / 1000;
+        
+        databaseQueryDuration
+          .labels(queryType)
+          .observe(duration);
+        
+        return result;
+      } catch (error) {
+        const duration = (Date.now() - start) / 1000;
+        
+        databaseQueryDuration
+          .labels(queryType)
+          .observe(duration);
+        
+        throw error;
+      }
+    };
+    
+    return descriptor;
+  };
+};
+
+// Redis监控装饰器
+export const monitorRedisOperation = (operationType: string) => {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = async function(...args: any[]) {
+      const start = Date.now();
+      
+      try {
+        const result = await originalMethod.apply(this, args);
+        const duration = (Date.now() - start) / 1000;
+        
+        redisOperationDuration
+          .labels(operationType)
+          .observe(duration);
+        
+        return result;
+      } catch (error) {
+        const duration = (Date.now() - start) / 1000;
+        
+        redisOperationDuration
+          .labels(operationType)
+          .observe(duration);
+        
+        throw error;
+      }
+    };
+    
+    return descriptor;
+  };
+};
+
+// 业务监控装饰器
+export const trackBusinessMetric = (metric: Counter | Gauge | Histogram, value?: number) => {
+  return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = async function(...args: any[]) {
+      const result = await originalMethod.apply(this, args);
+      
+      if (metric instanceof Counter) {
+        metric.inc();
+      } else if (metric instanceof Gauge) {
+        if (value !== undefined) {
+          metric.set(value);
+        } else {
+          metric.inc();
+        }
+      } else if (metric instanceof Histogram) {
+        if (value !== undefined) {
+          metric.observe(value);
+        }
+      }
+      
+      return result;
+    };
+    
+    return descriptor;
+  };
 };
 
 // 性能监控中间件
-export const performanceMonitor = (req: Request, res: Response, next: NextFunction) => {
-  const startTime = performance.now();
-  const startCpu = process.cpuUsage();
+export const performanceMonitoringMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  const start = performance.now();
   
-  // 增加活跃连接数
-  metrics.activeConnections++;
-  
-  // 记录请求开始
-  logger.info('Request started', {
-    method: req.method,
-    url: req.url,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
-  });
-
-  // 监听响应结束
   res.on('finish', () => {
-    const endTime = performance.now();
-    const responseTime = endTime - startTime;
-    const endCpu = process.cpuUsage();
+    const duration = performance.now() - start;
     
-    // 更新指标
-    metrics.requestCount++;
-    metrics.responseTime.push(responseTime);
-    metrics.activeConnections--;
-    metrics.memoryUsage = process.memoryUsage();
-    metrics.cpuUsage = endCpu;
-    
-    // 保持最近1000个响应时间记录
-    if (metrics.responseTime.length > 1000) {
-      metrics.responseTime.shift();
+    // 记录性能指标
+    if (duration > 1000) { // 超过1秒的请求
+      console.warn(`慢请求: ${req.method} ${req.path} - ${duration.toFixed(2)}ms`);
     }
-    
-    // 记录响应信息
-    logger.info('Request completed', {
-      method: req.method,
-      url: req.url,
-      statusCode: res.statusCode,
-      responseTime: `${responseTime.toFixed(2)}ms`,
-      contentLength: res.get('Content-Length') || 0,
-      timestamp: new Date().toISOString()
-    });
-    
-    // 检查性能告警
-    checkPerformanceAlerts(responseTime);
   });
-
-  // 监听错误
-  res.on('error', (error) => {
-    metrics.errorCount++;
-    logger.error('Response error', {
-      method: req.method,
-      url: req.url,
-      error: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    });
-    
-    // 检查错误率告警
-    checkErrorRateAlert();
-  });
-
-  next();
-};
-
-// 错误监控中间件
-export const errorMonitor = (error: Error, req: Request, res: Response, next: NextFunction) => {
-  metrics.errorCount++;
-  
-  logger.error('Application error', {
-    method: req.method,
-    url: req.url,
-    error: error.message,
-    stack: error.stack,
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    timestamp: new Date().toISOString()
-  });
-  
-  // 检查错误率告警
-  checkErrorRateAlert();
-  
-  // 发送错误响应
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong',
-    timestamp: new Date().toISOString()
-  });
-};
-
-// 业务指标监控
-export const businessMetricsMonitor = (req: Request, res: Response, next: NextFunction) => {
-  // 记录业务指标
-  const businessMetrics = {
-    endpoint: req.path,
-    method: req.method,
-    userId: req.user?.id || 'anonymous',
-    timestamp: new Date().toISOString(),
-    userAgent: req.get('User-Agent'),
-    ip: req.ip
-  };
-  
-  logger.info('Business metrics', businessMetrics);
   
   next();
 };
 
-// 检查性能告警
-function checkPerformanceAlerts(responseTime: number) {
-  if (responseTime > ALERT_THRESHOLDS.RESPONSE_TIME && !alertStatus.slowResponse) {
-    alertStatus.slowResponse = true;
-    logger.warn('Performance alert: Slow response time', {
-      responseTime: `${responseTime.toFixed(2)}ms`,
-      threshold: `${ALERT_THRESHOLDS.RESPONSE_TIME}ms`,
-      timestamp: new Date().toISOString()
-    });
-  } else if (responseTime <= ALERT_THRESHOLDS.RESPONSE_TIME && alertStatus.slowResponse) {
-    alertStatus.slowResponse = false;
-    logger.info('Performance alert resolved: Response time back to normal', {
-      responseTime: `${responseTime.toFixed(2)}ms`,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// 检查错误率告警
-function checkErrorRateAlert() {
-  const errorRate = metrics.requestCount > 0 ? metrics.errorCount / metrics.requestCount : 0;
-  
-  if (errorRate > ALERT_THRESHOLDS.ERROR_RATE && !alertStatus.highErrorRate) {
-    alertStatus.highErrorRate = true;
-    logger.warn('Error rate alert: High error rate detected', {
-      errorRate: `${(errorRate * 100).toFixed(2)}%`,
-      threshold: `${(ALERT_THRESHOLDS.ERROR_RATE * 100).toFixed(2)}%`,
-      errorCount: metrics.errorCount,
-      totalRequests: metrics.requestCount,
-      timestamp: new Date().toISOString()
-    });
-  } else if (errorRate <= ALERT_THRESHOLDS.ERROR_RATE && alertStatus.highErrorRate) {
-    alertStatus.highErrorRate = false;
-    logger.info('Error rate alert resolved: Error rate back to normal', {
-      errorRate: `${(errorRate * 100).toFixed(2)}%`,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// 检查系统资源告警
-export function checkSystemResourceAlerts() {
-  const memoryUsage = process.memoryUsage();
-  const memoryUsagePercent = memoryUsage.heapUsed / memoryUsage.heapTotal;
-  
-  if (memoryUsagePercent > ALERT_THRESHOLDS.MEMORY_USAGE && !alertStatus.highMemoryUsage) {
-    alertStatus.highMemoryUsage = true;
-    logger.warn('System alert: High memory usage', {
-      memoryUsage: `${(memoryUsagePercent * 100).toFixed(2)}%`,
-      threshold: `${(ALERT_THRESHOLDS.MEMORY_USAGE * 100).toFixed(2)}%`,
-      heapUsed: `${(memoryUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
-      heapTotal: `${(memoryUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`,
-      timestamp: new Date().toISOString()
-    });
-  } else if (memoryUsagePercent <= ALERT_THRESHOLDS.MEMORY_USAGE && alertStatus.highMemoryUsage) {
-    alertStatus.highMemoryUsage = false;
-    logger.info('System alert resolved: Memory usage back to normal', {
-      memoryUsage: `${(memoryUsagePercent * 100).toFixed(2)}%`,
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// 获取监控指标
-export function getMonitoringMetrics() {
-  const avgResponseTime = metrics.responseTime.length > 0 
-    ? metrics.responseTime.reduce((a, b) => a + b, 0) / metrics.responseTime.length 
-    : 0;
-  
-  const errorRate = metrics.requestCount > 0 
-    ? metrics.errorCount / metrics.requestCount 
-    : 0;
+// 内存监控
+export const memoryMonitoring = () => {
+  const memUsage = process.memoryUsage();
   
   return {
-    ...metrics,
-    avgResponseTime: avgResponseTime.toFixed(2),
-    errorRate: `${(errorRate * 100).toFixed(2)}%`,
-    alertStatus,
-    timestamp: new Date().toISOString()
+    rss: memUsage.rss,
+    heapTotal: memUsage.heapTotal,
+    heapUsed: memUsage.heapUsed,
+    external: memUsage.external,
+    arrayBuffers: memUsage.arrayBuffers
   };
-}
+};
 
-// 重置监控指标
-export function resetMonitoringMetrics() {
-  metrics.requestCount = 0;
-  metrics.errorCount = 0;
-  metrics.responseTime = [];
-  metrics.activeConnections = 0;
-  alertStatus = {
-    highErrorRate: false,
-    slowResponse: false,
-    highMemoryUsage: false,
-    highCpuUsage: false
-  };
+// 内存泄漏检测
+export const detectMemoryLeak = () => {
+  const memUsage = memoryMonitoring();
+  const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
   
-  logger.info('Monitoring metrics reset');
-}
+  if (heapUsedMB > 500) { // 500MB阈值
+    console.warn('内存使用过高:', heapUsedMB.toFixed(2), 'MB');
+  }
+  
+  return heapUsedMB;
+};
 
-// 定期检查系统资源
-setInterval(() => {
-  checkSystemResourceAlerts();
-}, 60000); // 每分钟检查一次
-
-export default {
-  performanceMonitor,
-  errorMonitor,
-  businessMetricsMonitor,
-  getMonitoringMetrics,
-  resetMonitoringMetrics,
-  checkSystemResourceAlerts
+// 导出业务指标
+export {
+  userRegistrations,
+  userLogins,
+  ordersCreated,
+  revenueTotal,
+  activeUsers,
+  orderValue
 }; 

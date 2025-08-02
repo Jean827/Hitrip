@@ -246,7 +246,7 @@ const MapPage: React.FC = () => {
     }
   };
 
-  const handleRoutePlanning = () => {
+  const handleRoutePlanningClick = () => {
     if (!selectedAttraction || !userLocation) {
       message.warning('请先选择目的地和获取当前位置');
       return;
@@ -312,7 +312,7 @@ const MapPage: React.FC = () => {
                     </Button>
                     <Button 
                       icon={<RouteOutlined />}
-                      onClick={handleRoutePlanning}
+                      onClick={handleRoutePlanningClick}
                       disabled={!selectedAttraction}
                     >
                       路线
