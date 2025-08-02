@@ -1,0 +1,94 @@
+.customer-service-chat-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+.chat-toggle-button {
+  width: 60px;
+  height: 60px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.chat-toggle-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.chat-toggle-button .anticon {
+  font-size: 24px;
+  color: white;
+}
+
+.chat-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+}
+
+.global-chat-interface {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .customer-service-chat-button {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .global-chat-interface {
+    bottom: 80px;
+    right: 10px;
+    left: 10px;
+    width: calc(100vw - 20px);
+    height: calc(100vh - 100px);
+  }
+  
+  .chat-toggle-button {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .chat-toggle-button .anticon {
+    font-size: 20px;
+  }
+}
+
+/* 动画效果 */
+.chat-toggle-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* 悬浮效果 */
+.customer-service-chat-button:hover .chat-toggle-button {
+  animation: none;
+  transform: scale(1.1);
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+  .chat-toggle-button {
+    background: linear-gradient(135deg, #177ddc 0%, #0958b5 100%);
+  }
+} 

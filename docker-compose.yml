@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 主数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: hainan_postgres
+    environment:
+      POSTGRES_DB: hainan_tourism
+      POSTGRES_USER: hainan_user
+      POSTGRES_PASSWORD: hainan_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # MongoDB 文档数据库
+  mongodb:
+    image: mongo:7.0
+    container_name: hainan_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: hainan_admin
+      MONGO_INITDB_ROOT_PASSWORD: hainan_password
+      MONGO_INITDB_DATABASE: hainan_tourism
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/database/mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # MySQL 业务数据库
+  mysql:
+    image: mysql:8.0
+    container_name: hainan_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: hainan_root_password
+      MYSQL_DATABASE: hainan_business
+      MYSQL_USER: hainan_user
+      MYSQL_PASSWORD: hainan_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/database/mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # Redis 缓存数据库
+  redis:
+    image: redis:7-alpine
+    container_name: hainan_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: hainan_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: hainan_user
+      RABBITMQ_DEFAULT_PASS: hainan_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: hainan_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./frontend/dist:/usr/share/nginx/html/frontend
+      - ./admin/dist:/usr/share/nginx/html/admin
+    depends_on:
+      - backend
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hainan_backend
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://hainan_user:hainan_password@postgres:5432/hainan_tourism
+      MONGODB_URL: mongodb://hainan_admin:hainan_password@mongodb:27017/hainan_tourism?authSource=admin
+      MYSQL_URL: mysql://hainan_user:hainan_password@mysql:3306/hainan_business
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://hainan_user:hainan_password@rabbitmq:5672
+      JWT_SECRET: hainan_jwt_secret_key_2024
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - mongodb
+      - mysql
+      - redis
+      - rabbitmq
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # 前端开发服务器
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: hainan_frontend
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://localhost:3000/api
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # 管理后台开发服务器
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile.dev
+    container_name: hainan_admin
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE_URL: http://localhost:3000/api
+    ports:
+      - "5174:5173"
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  # 监控服务
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hainan_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hainan_grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: hainan_grafana_password
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - hainan_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  hainan_network:
+    driver: bridge 

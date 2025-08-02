@@ -1,0 +1,55 @@
+{
+  "name": "hainan-tourism-platform",
+  "version": "1.0.0",
+  "description": "海南文旅公司应用系统",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "admin",
+    "mobile"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:admin": "cd admin && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:admin",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "build:admin": "cd admin && npm run build",
+    "test": "npm run test:frontend && npm run test:backend",
+    "test:frontend": "cd frontend && npm run test",
+    "test:backend": "cd backend && npm run test",
+    "lint": "npm run lint:frontend && npm run lint:backend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:backend": "cd backend && npm run lint",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "setup": "npm install && npm run setup:db",
+    "setup:db": "cd backend && npm run db:migrate && npm run db:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/hainan-tourism-platform.git"
+  },
+  "keywords": [
+    "tourism",
+    "hainan",
+    "react",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "海南文旅公司",
+  "license": "MIT"
+} 
