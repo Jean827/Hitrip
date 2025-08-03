@@ -70,7 +70,7 @@ const OrderListPage: React.FC = () => {
 
       const response = await fetch(`/api/orders?${params}`, {
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
@@ -96,7 +96,7 @@ const OrderListPage: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
           cancelReason: '用户取消',
@@ -122,7 +122,7 @@ const OrderListPage: React.FC = () => {
       const response = await fetch(`/api/orders/${orderId}/confirm`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
       });
 

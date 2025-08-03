@@ -355,7 +355,7 @@ const GuidePage: React.FC = () => {
                           </Paragraph>
                           <div className="attraction-tags">
                             {attraction.tags.slice(0, 3).map(tag => (
-                              <Tag key={tag} size="small">{tag}</Tag>
+                              <Tag key={tag}>{tag}</Tag>
                             ))}
                           </div>
                           <div className="attraction-meta">

@@ -249,7 +249,7 @@ const CartPage: React.FC = () => {
                         max={item.product.stock}
                         value={item.quantity}
                         onChange={(value) => handleQuantityChange(item.id, value)}
-                        loading={updating === item.id}
+
                         style={{ width: '100px' }}
                       />
                     </Col>

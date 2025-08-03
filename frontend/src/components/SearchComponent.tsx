@@ -209,7 +209,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
   const handleClearHistory = async () => {
     try {
       const response = await searchApi.clearHistory();
-      if (response.success) {
+      if ('success' in response && response.success) {
         message.success('清空成功');
         setHistory([]);
       }
@@ -313,7 +313,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             >
               <SearchOutlined style={{ marginRight: 8, color: '#999' }} />
               <span>{item.text}</span>
-              <Tag size="small" color={item.type === 'product' ? 'blue' : item.type === 'category' ? 'green' : 'orange'}>
+              <Tag color={item.type === 'product' ? 'blue' : item.type === 'category' ? 'green' : 'orange'}>
                 {item.type === 'product' ? '商品' : item.type === 'category' ? '分类' : '热门'}
               </Tag>
             </List.Item>

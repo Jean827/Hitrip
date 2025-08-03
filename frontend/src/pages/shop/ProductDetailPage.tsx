@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, InputNumber, Tag, Rate, Divider, Spin, message, Empty, Image, Tabs } from 'antd';
-import { ShoppingCartOutlined, HeartOutlined, ShareAltOutlined, StarOutlined } from '@ant-design/icons';
+import { Row, Col, Button, InputNumber, Tag, Rate, Divider, Spin, message, Empty, Image, Tabs } from 'antd';
+import { ShoppingCartOutlined, HeartOutlined, ShareAltOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 

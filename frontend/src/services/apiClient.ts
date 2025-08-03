@@ -1,8 +1,17 @@
 import axios from 'axios';
 
-// 创建axios实例
+// 声明 import.meta.env 的类型
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_API_URL?: string;
+      MODE?: string;
+    };
+  }
+}
+
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,7 +21,6 @@ const apiClient = axios.create({
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config) => {
-    // 从localStorage获取token
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -27,10 +35,9 @@ apiClient.interceptors.request.use(
 // 响应拦截器
 apiClient.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response;
   },
   (error) => {
-    // 处理401未授权错误
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
@@ -39,4 +46,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-export { apiClient }; 
+export default apiClient; 

@@ -1,117 +1,99 @@
 import axios from 'axios';
 
-// API基础URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
-// 创建axios实例
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// 请求拦截器：添加token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// 声明 import.meta.env 的类型
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_API_URL?: string;
+      MODE?: string;
+    };
   }
-);
+}
 
-// 响应拦截器：处理token过期
-apiClient.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
 
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refreshToken,
-          });
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-          const { token, refreshToken: newRefreshToken } = response.data.data;
-          localStorage.setItem('token', token);
-          localStorage.setItem('refreshToken', newRefreshToken);
-
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return apiClient(originalRequest);
-        }
-      } catch (refreshError) {
-        // 刷新token失败，清除本地存储并跳转到登录页
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/auth/login';
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-// 认证API接口
-export const authApi = {
-  // 用户注册
-  register: async (userData: {
-    username: string;
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+  user?: {
+    id: string;
+    name: string;
     email: string;
-    password: string;
-    phone?: string;
-    nickname?: string;
-  }) => {
-    return apiClient.post('/auth/register', userData);
+    role: string;
+  };
+}
+
+export const authApi = {
+  login: async (data: LoginRequest): Promise<AuthResponse> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || '登录失败');
+    }
   },
 
-  // 用户登录
-  login: async (credentials: {
-    username: string;
-    password: string;
-  }) => {
-    return apiClient.post('/auth/login', credentials);
+  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/register`, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || '注册失败');
+    }
   },
 
-  // 刷新token
-  refreshToken: async (data: { refreshToken: string }) => {
-    return apiClient.post('/auth/refresh', data);
+  logout: async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    } catch (error) {
+      console.error('登出失败:', error);
+    } finally {
+      localStorage.removeItem('token');
+    }
   },
 
-  // 用户登出
-  logout: async (data: { refreshToken: string }) => {
-    return apiClient.post('/auth/logout', data);
+  forgotPassword: async (email: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || '发送重置邮件失败');
+    }
   },
 
-  // 忘记密码
-  forgotPassword: async (data: { email: string }) => {
-    return apiClient.post('/auth/forgot-password', data);
+  resetPassword: async (token: string, password: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, { token, password });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || '重置密码失败');
+    }
   },
 
-  // 重置密码
-  resetPassword: async (data: { token: string; password: string }) => {
-    return apiClient.post('/auth/reset-password', data);
-  },
-
-  // 验证邮箱
-  verifyEmail: async (data: { token: string }) => {
-    return apiClient.post('/auth/verify-email', data);
-  },
-
-  // 重新发送验证邮件
-  resendVerification: async (data: { email: string }) => {
-    return apiClient.post('/auth/resend-verification', data);
-  },
-};
-
-export default authApi; 
+  verifyEmail: async (token: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/verify-email`, { token });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || '邮箱验证失败');
+    }
+  }
+}; 

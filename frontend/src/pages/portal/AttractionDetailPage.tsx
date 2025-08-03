@@ -12,7 +12,6 @@ import {
   Divider, 
   List, 
   Avatar, 
-  Comment, 
   Tabs,
   Image,
   Descriptions,
@@ -32,8 +31,6 @@ import {
   PhoneOutlined,
   GlobalOutlined,
   CarOutlined,
-  BusOutlined,
-  SubwayOutlined,
   UserOutlined,
   LikeOutlined,
   DislikeOutlined,
@@ -492,22 +489,29 @@ const AttractionDetailPage: React.FC = () => {
                         dataSource={attraction.reviews}
                         renderItem={review => (
                           <List.Item>
-                            <Comment
-                              author={review.user.name}
-                              avatar={<Avatar src={review.user.avatar} />}
-                              content={review.content}
-                              datetime={review.date}
-                              actions={[
-                                <Space key="actions">
-                                  <Button type="text" icon={<LikeOutlined />}>
+                            <div className="review-item">
+                              <div className="review-header flex items-center mb-2">
+                                <Avatar src={review.user.avatar} className="mr-2" />
+                                <div className="flex-1">
+                                  <div className="font-medium">{review.user.name}</div>
+                                  <div className="text-xs text-gray-500">{review.date}</div>
+                                </div>
+                                <Rate disabled defaultValue={review.rating} />
+                              </div>
+                              <div className="review-content mb-2">
+                                {review.content}
+                              </div>
+                              <div className="review-actions">
+                                <Space>
+                                  <Button type="text" icon={<LikeOutlined />} size="small">
                                     {review.likes}
                                   </Button>
-                                  <Button type="text" icon={<DislikeOutlined />}>
+                                  <Button type="text" icon={<DislikeOutlined />} size="small">
                                     回复
                                   </Button>
                                 </Space>
-                              ]}
-                            />
+                              </div>
+                            </div>
                             {review.images.length > 0 && (
                               <div className="review-images mt-2">
                                 <Image.PreviewGroup>

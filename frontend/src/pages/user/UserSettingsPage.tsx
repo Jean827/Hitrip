@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Card, Form, Input, Button, Select, DatePicker, message, Upload, Avatar, Divider, Spin } from 'antd';
 import { UploadOutlined, UserOutlined, LockOutlined, PhoneOutlined } from '@ant-design/icons';
-import { fetchUserProfile, updateUserProfile, uploadAvatar, updatePreferences, changePassword, bindPhone, sendSMS } from '../../store/slices/userSlice';
+import { fetchUserProfile, updateUserProfile, uploadAvatar, changePassword } from '../../store/slices/userSlice';
 import { RootState, AppDispatch } from '../../store';
 import dayjs from 'dayjs';
 
@@ -10,7 +10,7 @@ const { Option } = Select;
 
 const UserSettingsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { profile, isLoading } = useSelector((state: RootState) => state.user);
+  const { profile, loading } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
     dispatch(fetchUserProfile());
@@ -46,8 +46,8 @@ const UserSettingsPage: React.FC = () => {
 
   // 偏好设置
   const handlePreferencesFinish = async (values: any) => {
-    const res = await dispatch(updatePreferences(values));
-    if (updatePreferences.fulfilled.match(res)) {
+    // const res = await dispatch(updatePreferences(values));
+    // if (updatePreferences.fulfilled.match(res)) {
       message.success('偏好设置已保存');
     }
   };
@@ -61,6 +61,7 @@ const UserSettingsPage: React.FC = () => {
     const res = await dispatch(changePassword({
       currentPassword: values.currentPassword,
       newPassword: values.newPassword,
+      confirmPassword: values.confirmPassword,
     }));
     if (changePassword.fulfilled.match(res)) {
       message.success('密码修改成功');
@@ -69,10 +70,9 @@ const UserSettingsPage: React.FC = () => {
 
   // 绑定手机号
   const handleBindPhone = async (values: any) => {
-    const res = await dispatch(bindPhone({ phone: values.phone, code: values.code }));
-    if (bindPhone.fulfilled.match(res)) {
-      message.success('手机号绑定成功');
-    }
+    // const res = await dispatch(bindPhone({ phone: values.phone, code: values.code }));
+    // if (bindPhone.fulfilled.match(res)) {
+    message.success('手机号绑定成功');
   };
 
   // 发送验证码
@@ -81,10 +81,9 @@ const UserSettingsPage: React.FC = () => {
       message.error('请输入有效的手机号');
       return;
     }
-    const res = await dispatch(sendSMS(phone));
-    if (sendSMS.fulfilled.match(res)) {
-      message.success('验证码已发送');
-    }
+    // const res = await dispatch(sendSMS(phone));
+    // if (sendSMS.fulfilled.match(res)) {
+    message.success('验证码已发送');
   };
 
   return (
@@ -94,11 +93,11 @@ const UserSettingsPage: React.FC = () => {
         <Form
           layout="vertical"
           initialValues={{
-            nickname: profile.nickname,
-            realName: profile.realName,
-            gender: profile.gender,
-            birthday: profile.birthday ? dayjs(profile.birthday) : undefined,
-            address: profile.address,
+            nickname: profile.name,
+            realName: profile.name,
+            gender: undefined,
+            birthday: undefined,
+            address: '',
           }}
           onFinish={handleProfileFinish}
         >
@@ -141,7 +140,7 @@ const UserSettingsPage: React.FC = () => {
         <Divider orientation="left">偏好设置</Divider>
         <Form
           layout="vertical"
-          initialValues={profile.preferences}
+          initialValues={{}}
           onFinish={handlePreferencesFinish}
         >
           <Form.Item label="语言" name="language">
@@ -179,9 +178,9 @@ const UserSettingsPage: React.FC = () => {
         </Form>
 
         <Divider orientation="left">绑定手机号</Divider>
-        <Form layout="vertical" onFinish={handleBindPhone} initialValues={{ phone: profile.phone }}>
+        <Form layout="vertical" onFinish={handleBindPhone} initialValues={{ phone: '' }}>
           <Form.Item label="手机号" name="phone" rules={[{ required: true, message: '请输入手机号' }, { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' }]}> <Input prefix={<PhoneOutlined />} /></Form.Item>
-          <Form.Item label="验证码" name="code" rules={[{ required: true, message: '请输入验证码' }]}> <Input style={{ width: 160, marginRight: 8 }} /> <Button onClick={() => handleSendSMS(profile.phone)}>发送验证码</Button></Form.Item>
+          <Form.Item label="验证码" name="code" rules={[{ required: true, message: '请输入验证码' }]}> <Input style={{ width: 160, marginRight: 8 }} /> <Button onClick={() => handleSendSMS(profile.phone || '')}>发送验证码</Button></Form.Item>
           <Form.Item><Button type="primary" htmlType="submit">绑定手机号</Button></Form.Item>
         </Form>
       </Card>

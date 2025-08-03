@@ -22,13 +22,12 @@ import {
   SearchOutlined, 
   EnvironmentOutlined, 
   CarOutlined, 
-  WalkOutlined, 
   StarOutlined,
   HeartOutlined,
   ShareAltOutlined,
   SettingOutlined,
-  MyLocationOutlined,
-  RouteOutlined,
+  AimOutlined,
+  CompassOutlined,
   FilterOutlined
 } from '@ant-design/icons';
 import AmapComponent from '../../components/map/AmapComponent';
@@ -305,13 +304,13 @@ const MapPage: React.FC = () => {
                   <Space direction="vertical">
                     <Button 
                       type="primary" 
-                      icon={<MyLocationOutlined />}
+                      icon={<AimOutlined />}
                       onClick={getCurrentLocation}
                     >
                       定位
                     </Button>
                     <Button 
-                      icon={<RouteOutlined />}
+                      icon={<CompassOutlined />}
                       onClick={handleRoutePlanningClick}
                       disabled={!selectedAttraction}
                     >
@@ -416,7 +415,7 @@ const MapPage: React.FC = () => {
                             </Paragraph>
                             <div className="attraction-tags">
                               {attraction.tags.slice(0, 3).map(tag => (
-                                <Tag key={tag} size="small">{tag}</Tag>
+                                <Tag key={tag}>{tag}</Tag>
                               ))}
                             </div>
                             <div className="attraction-meta mt-2">
@@ -504,7 +503,7 @@ const MapPage: React.FC = () => {
                     </div>
                     <Divider />
                     <div className="route-steps">
-                      <Title level={6}>路线详情:</Title>
+                      <Title level={5}>路线详情:</Title>
                       <List
                         size="small"
                         dataSource={routeInfo.steps}

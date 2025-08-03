@@ -9,7 +9,6 @@ import {
   List, 
   Tag, 
   Avatar, 
-  Comment, 
   Input, 
   Divider,
   Tabs,
@@ -769,35 +768,46 @@ const CommunityPage: React.FC = () => {
                 dataSource={comments}
                 renderItem={comment => (
                   <List.Item>
-                    <Comment
-                      author={comment.author.name}
-                      avatar={<Avatar src={comment.author.avatar} />}
-                      content={comment.content}
-                      datetime={comment.createdAt}
-                      actions={[
-                        <Button type="text" icon={<LikeOutlined />}>
+                    <div className="comment-item">
+                      <div className="comment-header flex items-center mb-2">
+                        <Avatar src={comment.author.avatar} className="mr-2" />
+                        <div className="flex-1">
+                          <div className="font-medium">{comment.author.name}</div>
+                          <div className="text-xs text-gray-500">{comment.createdAt}</div>
+                        </div>
+                      </div>
+                      <div className="comment-content mb-2">
+                        {comment.content}
+                      </div>
+                      <div className="comment-actions">
+                        <Button type="text" icon={<LikeOutlined />} size="small">
                           {comment.likes}
-                        </Button>,
-                        <Button type="text" icon={<MessageOutlined />}>
+                        </Button>
+                        <Button type="text" icon={<MessageOutlined />} size="small">
                           回复
                         </Button>
-                      ]}
-                    />
+                      </div>
+                    </div>
                     {comment.replies.length > 0 && (
                       <div className="replies ml-8 mt-2">
                         {comment.replies.map(reply => (
-                          <Comment
-                            key={reply.id}
-                            author={reply.author.name}
-                            avatar={<Avatar src={reply.author.avatar} size="small" />}
-                            content={reply.content}
-                            datetime={reply.createdAt}
-                            actions={[
+                          <div key={reply.id} className="reply-item">
+                            <div className="comment-header flex items-center mb-2">
+                              <Avatar src={reply.author.avatar} size="small" className="mr-2" />
+                              <div className="flex-1">
+                                <div className="font-medium">{reply.author.name}</div>
+                                <div className="text-xs text-gray-500">{reply.createdAt}</div>
+                              </div>
+                            </div>
+                            <div className="comment-content mb-2">
+                              {reply.content}
+                            </div>
+                            <div className="comment-actions">
                               <Button type="text" icon={<LikeOutlined />} size="small">
                                 {reply.likes}
                               </Button>
-                            ]}
-                          />
+                            </div>
+                          </div>
                         ))}
                       </div>
                     )}

@@ -32,7 +32,8 @@ import {
 } from '@ant-design/icons';
 import SearchComponent from '../../components/SearchComponent';
 import { searchApi } from '../../services/searchApi';
-import { useAuth } from '../../store/slices/authSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 const { Search } = Input;
 const { Text, Title } = Typography;
@@ -62,7 +63,7 @@ interface FilterOptions {
 }
 
 const MobileSearchPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useSelector((state: RootState) => state.auth);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
@@ -104,7 +105,7 @@ const MobileSearchPage: React.FC = () => {
         sortBy: filters.sortBy
       });
       
-      if (response.success) {
+      if ('success' in response && response.success) {
         setSearchResults(response.data.results);
         setFilteredResults(response.data.results);
       }

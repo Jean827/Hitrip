@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Carousel, Tag, Button, Input, Select, Space, Spin, message } from 'antd';
+import { Card, Row, Carousel, Tag, Button, Input, Select, Spin, message } from 'antd';
 import { SearchOutlined, FireOutlined, StarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const { Search } = Input;
-const { Option } = Select;
+// const { Option } = Select;
 
 interface Product {
   id: string;
@@ -165,7 +165,7 @@ const ShopHomePage: React.FC = () => {
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
               {product.tags.slice(0, 3).map((tag, index) => (
-                <Tag key={index} color="blue" size="small">
+                <Tag key={index} color="blue">
                   {tag}
                 </Tag>
               ))}

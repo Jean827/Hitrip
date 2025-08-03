@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
+import { Card, Badge, Button, Tabs, Progress, Row, Col, Statistic, Typography, Space } from 'antd';
 import { 
-  User, 
-  Heart, 
-  Clock, 
-  TrendingUp, 
-  ShoppingCart, 
-  Eye,
-  RefreshCw,
-  BarChart3
-} from 'lucide-react';
+  UserOutlined, 
+  RiseOutlined, 
+  HeartOutlined, 
+  BarChartOutlined,
+  ReloadOutlined,
+  EditOutlined
+} from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 interface UserProfile {
   id: string;
@@ -56,8 +52,6 @@ interface UserSegment {
 const UserProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userSegment, setUserSegment] = useState<UserSegment | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
@@ -65,415 +59,292 @@ const UserProfilePage: React.FC = () => {
 
   const loadUserProfile = async () => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
+      // 模拟数据
+      const mockUserProfile: UserProfile = {
+        id: '1',
+        userId: 'user123',
+        interests: [
+          { id: '1', name: '旅游', score: 0.9, frequency: 15 },
+          { id: '2', name: '美食', score: 0.8, frequency: 12 },
+          { id: '3', name: '购物', score: 0.7, frequency: 8 },
+          { id: '4', name: '文化', score: 0.6, frequency: 6 }
+        ],
+        behaviorPatterns: [
+          { patternType: '浏览行为', frequency: 25, timeSlot: '上午', context: {} },
+          { patternType: '购买行为', frequency: 8, timeSlot: '下午', context: {} },
+          { patternType: '搜索行为', frequency: 15, timeSlot: '晚上', context: {} }
+        ],
+        userValue: 85,
+        userSegment: 'high_value',
+        lastUpdated: new Date().toISOString()
+      };
 
-      if (!token || !userId) {
-        console.error('未找到用户认证信息');
-        return;
-      }
+      const mockUserSegment: UserSegment = {
+        segment: 'high_value',
+        segmentName: '高价值用户',
+        description: '消费能力强，活跃度高的用户群体',
+        valueMetrics: {
+          totalPurchases: 25,
+          totalSpent: 15000,
+          avgOrderValue: 600,
+          purchaseFrequency: 2.5,
+          lastPurchaseDate: '2024-01-15',
+          engagementScore: 85
+        }
+      };
 
-      // 获取用户画像
-      const profileResponse = await fetch(`/api/user-profiles/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (profileResponse.ok) {
-        const profileData = await profileResponse.json();
-        setUserProfile(profileData.data);
-      }
-
-      // 获取用户分群信息
-      const segmentResponse = await fetch(`/api/user-profiles/${userId}/segments`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (segmentResponse.ok) {
-        const segmentData = await segmentResponse.json();
-        setUserSegment(segmentData.data);
-      }
+      setUserProfile(mockUserProfile);
+      setUserSegment(mockUserSegment);
     } catch (error) {
-      console.error('加载用户画像失败:', error);
-    } finally {
-      setLoading(false);
+      console.error('加载用户档案失败:', error);
     }
   };
 
   const refreshUserProfile = async () => {
-    try {
-      setRefreshing(true);
-      const token = localStorage.getItem('token');
-      const userId = localStorage.getItem('userId');
-
-      if (!token || !userId) {
-        console.error('未找到用户认证信息');
-        return;
-      }
-
-      // 更新用户画像
-      await fetch(`/api/user-profiles/${userId}/update`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      // 重新加载数据
-      await loadUserProfile();
-    } catch (error) {
-      console.error('更新用户画像失败:', error);
-    } finally {
-      setRefreshing(false);
-    }
+    await loadUserProfile();
   };
 
   const getSegmentColor = (segment: string) => {
     switch (segment) {
-      case 'vip':
-        return 'bg-gradient-to-r from-purple-500 to-pink-500';
-      case 'active':
-        return 'bg-gradient-to-r from-blue-500 to-cyan-500';
-      case 'new':
-        return 'bg-gradient-to-r from-green-500 to-emerald-500';
-      case 'inactive':
-        return 'bg-gradient-to-r from-gray-500 to-slate-500';
-      default:
-        return 'bg-gray-500';
+      case 'high_value': return 'success';
+      case 'medium_value': return 'warning';
+      case 'low_value': return 'default';
+      default: return 'default';
     }
   };
 
   const getBehaviorPatternIcon = (patternType: string) => {
     switch (patternType) {
-      case 'time':
-        return <Clock className="w-4 h-4" />;
-      case 'sequence':
-        return <TrendingUp className="w-4 h-4" />;
-      case 'page':
-        return <Eye className="w-4 h-4" />;
-      default:
-        return <BarChart3 className="w-4 h-4" />;
+      case '浏览行为': return <UserOutlined />;
+      case '购买行为': return <RiseOutlined />;
+      case '搜索行为': return <BarChartOutlined />;
+      default: return <UserOutlined />;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">用户画像分析</h1>
-        <Button 
-          onClick={refreshUserProfile} 
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? '更新中...' : '更新画像'}
-        </Button>
-      </div>
-
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">概览</TabsTrigger>
-          <TabsTrigger value="interests">兴趣标签</TabsTrigger>
-          <TabsTrigger value="patterns">行为模式</TabsTrigger>
-          <TabsTrigger value="value">用户价值</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* 用户分群卡片 */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">用户分群</CardTitle>
-                <User className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {userSegment?.segmentName || '未知'}
-                </div>
-                <p className="text-xs text-muted-foreground">
+  const tabItems = [
+    {
+      key: 'overview',
+      label: '概览',
+      children: (
+        <div>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="用户分群"
+                  value={userSegment?.segmentName || '未知'}
+                  prefix={<UserOutlined />}
+                />
+                <Text type="secondary" className="text-xs">
                   {userSegment?.description || '暂无描述'}
-                </p>
+                </Text>
                 {userSegment && (
-                  <Badge className={`mt-2 ${getSegmentColor(userSegment.segment)}`}>
-                    {userSegment.segmentName}
-                  </Badge>
+                  <Badge 
+                    status={getSegmentColor(userSegment.segment) as any} 
+                    text={userSegment.segmentName}
+                    className="mt-2"
+                  />
                 )}
-              </CardContent>
-            </Card>
+              </Card>
+            </Col>
 
-            {/* 用户价值卡片 */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">用户价值</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {userProfile?.userValue || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="用户价值"
+                  value={userProfile?.userValue || 0}
+                  prefix={<RiseOutlined />}
+                  suffix="分"
+                />
+                <Text type="secondary" className="text-xs">
                   参与度分数
-                </p>
-                <Progress value={userProfile?.userValue || 0} className="mt-2" />
-              </CardContent>
-            </Card>
+                </Text>
+                <Progress 
+                  percent={userProfile?.userValue || 0} 
+                  size="small"
+                  className="mt-2"
+                />
+              </Card>
+            </Col>
 
-            {/* 兴趣标签数量 */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">兴趣标签</CardTitle>
-                <Heart className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {userProfile?.interests?.length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="兴趣标签"
+                  value={userProfile?.interests?.length || 0}
+                  prefix={<HeartOutlined />}
+                  suffix="个"
+                />
+                <Text type="secondary" className="text-xs">
                   个兴趣分类
-                </p>
-              </CardContent>
-            </Card>
+                </Text>
+              </Card>
+            </Col>
 
-            {/* 行为模式数量 */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">行为模式</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {userProfile?.behaviorPatterns?.length || 0}
-                </div>
-                <p className="text-xs text-muted-foreground">
+            <Col xs={24} sm={12} lg={6}>
+              <Card>
+                <Statistic
+                  title="行为模式"
+                  value={userProfile?.behaviorPatterns?.length || 0}
+                  prefix={<BarChartOutlined />}
+                  suffix="种"
+                />
+                <Text type="secondary" className="text-xs">
                   种行为模式
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                </Text>
+              </Card>
+            </Col>
+          </Row>
 
-          {/* 用户价值详情 */}
           {userSegment && (
-            <Card>
-              <CardHeader>
-                <CardTitle>用户价值详情</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {userSegment.valueMetrics.totalPurchases}
-                    </div>
-                    <div className="text-sm text-muted-foreground">总购买次数</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
-                      ¥{userSegment.valueMetrics.totalSpent.toFixed(2)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">总消费金额</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">
-                      ¥{userSegment.valueMetrics.avgOrderValue.toFixed(2)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">平均订单价值</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {userSegment.valueMetrics.purchaseFrequency}
-                    </div>
-                    <div className="text-sm text-muted-foreground">购买频率</div>
-                  </div>
-                </div>
-              </CardContent>
+            <Card title="用户价值详情" className="mt-6">
+              <Row gutter={[16, 16]}>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="总购买次数"
+                    value={userSegment.valueMetrics.totalPurchases}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="总消费金额"
+                    value={userSegment.valueMetrics.totalSpent}
+                    valueStyle={{ color: '#52c41a' }}
+                    suffix="元"
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="平均订单价值"
+                    value={userSegment.valueMetrics.avgOrderValue}
+                    valueStyle={{ color: '#faad14' }}
+                    suffix="元"
+                  />
+                </Col>
+                <Col xs={12} sm={6}>
+                  <Statistic
+                    title="购买频率"
+                    value={userSegment.valueMetrics.purchaseFrequency}
+                    valueStyle={{ color: '#f5222d' }}
+                    suffix="次/月"
+                  />
+                </Col>
+              </Row>
             </Card>
           )}
-        </TabsContent>
-
-        <TabsContent value="interests" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>兴趣标签分析</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {userProfile?.interests && userProfile.interests.length > 0 ? (
-                <div className="space-y-4">
-                  {userProfile.interests.map((interest, index) => (
-                    <div key={interest.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Badge variant="secondary">{index + 1}</Badge>
-                        <div>
-                          <div className="font-medium">{interest.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            频率: {interest.frequency} 次
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Progress value={interest.score * 100} className="w-20" />
-                        <span className="text-sm font-medium">
-                          {(interest.score * 100).toFixed(1)}%
-                        </span>
+        </div>
+      )
+    },
+    {
+      key: 'interests',
+      label: '兴趣标签',
+      children: (
+        <Card title="兴趣标签分析">
+          <Row gutter={[16, 16]}>
+            {userProfile?.interests?.map((interest, index) => (
+              <Col xs={24} sm={12} lg={6} key={interest.id}>
+                <Card size="small">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <Text strong>{interest.name}</Text>
+                      <div className="text-xs text-gray-500">
+                        频率: {interest.frequency}次
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  暂无兴趣标签数据
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="patterns" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>行为模式分析</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {userProfile?.behaviorPatterns && userProfile.behaviorPatterns.length > 0 ? (
-                <div className="space-y-4">
-                  {userProfile.behaviorPatterns.map((pattern, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-3 mb-3">
-                        {getBehaviorPatternIcon(pattern.patternType)}
-                        <div className="font-medium">
-                          {pattern.patternType === 'time' && '时间模式'}
-                          {pattern.patternType === 'sequence' && '行为序列'}
-                          {pattern.patternType === 'page' && '页面访问'}
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">频率: </span>
-                          <span className="font-medium">{pattern.frequency}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">时间段: </span>
-                          <span className="font-medium">{pattern.timeSlot}</span>
-                        </div>
-                      </div>
-                      {pattern.context && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded text-xs">
-                          <div className="font-medium mb-2">详细数据:</div>
-                          <pre className="whitespace-pre-wrap">
-                            {JSON.stringify(pattern.context, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  暂无行为模式数据
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="value" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>用户价值评估</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {userSegment ? (
-                <div className="space-y-6">
-                  {/* 参与度分数 */}
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">参与度分数</span>
-                      <span className="text-sm font-medium">
-                        {userSegment.valueMetrics.engagementScore.toFixed(1)}/100
-                      </span>
-                    </div>
-                    <Progress 
-                      value={userSegment.valueMetrics.engagementScore} 
-                      className="h-3"
-                    />
+                    <Badge count={index + 1} style={{ backgroundColor: '#1890ff' }} />
                   </div>
-
-                  {/* 购买行为统计 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ShoppingCart className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">购买行为</span>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>总购买次数:</span>
-                          <span className="font-medium">{userSegment.valueMetrics.totalPurchases}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>总消费金额:</span>
-                          <span className="font-medium">¥{userSegment.valueMetrics.totalSpent.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>平均订单价值:</span>
-                          <span className="font-medium">¥{userSegment.valueMetrics.avgOrderValue.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>购买频率:</span>
-                          <span className="font-medium">{userSegment.valueMetrics.purchaseFrequency} 次/月</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="w-4 h-4 text-green-600" />
-                        <span className="font-medium">时间信息</span>
-                      </div>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>最后购买时间:</span>
-                          <span className="font-medium">
-                            {userSegment.valueMetrics.lastPurchaseDate 
-                              ? new Date(userSegment.valueMetrics.lastPurchaseDate).toLocaleDateString()
-                              : '暂无'
-                            }
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>画像更新时间:</span>
-                          <span className="font-medium">
-                            {userProfile?.lastUpdated 
-                              ? new Date(userProfile.lastUpdated).toLocaleDateString()
-                              : '未知'
-                            }
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  <Progress 
+                    percent={interest.score * 100} 
+                    size="small"
+                    className="mt-2"
+                  />
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      )
+    },
+    {
+      key: 'patterns',
+      label: '行为模式',
+      children: (
+        <Card title="行为模式分析">
+          <Row gutter={[16, 16]}>
+            {userProfile?.behaviorPatterns?.map((pattern, index) => (
+              <Col xs={24} sm={12} lg={8} key={index}>
+                <Card size="small">
+                  <div className="flex items-center mb-2">
+                    {getBehaviorPatternIcon(pattern.patternType)}
+                    <Text strong className="ml-2">{pattern.patternType}</Text>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    频率: {pattern.frequency}次
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    时间段: {pattern.timeSlot}
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </Card>
+      )
+    },
+    {
+      key: 'value',
+      label: '用户价值',
+      children: (
+        <Card title="用户价值评估">
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12}>
+              <Card title="参与度评分" size="small">
+                <Progress 
+                  type="circle"
+                  percent={userSegment?.valueMetrics.engagementScore || 0}
+                  format={percent => `${percent}分`}
+                />
+              </Card>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Card title="价值指标" size="small">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Text>用户等级:</Text>
+                    <Badge status="success" text="高价值" />
+                  </div>
+                  <div className="flex justify-between">
+                    <Text>活跃度:</Text>
+                    <Text strong>{userProfile?.userValue || 0}%</Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text>忠诚度:</Text>
+                    <Text strong>高</Text>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  暂无用户价值数据
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </Card>
+            </Col>
+          </Row>
+        </Card>
+      )
+    }
+  ];
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <Title level={2}>用户档案分析</Title>
+        <Space>
+          <Button icon={<EditOutlined />}>编辑档案</Button>
+          <Button icon={<ReloadOutlined />} onClick={refreshUserProfile}>
+            刷新数据
+          </Button>
+        </Space>
+      </div>
+
+      <Tabs defaultActiveKey="overview" items={tabItems} />
     </div>
   );
 };

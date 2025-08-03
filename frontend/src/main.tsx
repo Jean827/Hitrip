@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
@@ -39,9 +39,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             },
           }}
         >
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <AntdApp>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </AntdApp>
         </ConfigProvider>
       </QueryClientProvider>
     </Provider>

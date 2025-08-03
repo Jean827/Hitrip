@@ -282,7 +282,7 @@ const AttractionsPage: React.FC = () => {
               </div>
               <div>
                 {attraction.tags.slice(0, 2).map(tag => (
-                  <Tag key={tag} size="small" style={{ marginBottom: 4 }}>
+                  <Tag key={tag} style={{ marginBottom: 4 }}>
                     {tag}
                   </Tag>
                 ))}

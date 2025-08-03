@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Carousel, Card, Row, Col, Typography, Button, Space, Tag, Avatar } from 'antd';
+import { Carousel, Card, Row, Col, Typography, Button, Space, Tag } from 'antd';
 import { 
   EnvironmentOutlined, 
   StarOutlined, 
@@ -37,7 +37,7 @@ interface News {
 const PortalHomePage: React.FC = () => {
   const [attractions, setAttractions] = useState<Attraction[]>([]);
   const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
+
 
   // 模拟数据
   useEffect(() => {
@@ -120,7 +120,6 @@ const PortalHomePage: React.FC = () => {
 
     setAttractions(mockAttractions);
     setNews(mockNews);
-    setLoading(false);
   }, []);
 
   const carouselItems = [
@@ -385,6 +384,15 @@ const PortalHomePage: React.FC = () => {
           </Row>
         </div>
       </section>
+
+      {/* 商城入口 */}
+      <div style={{ textAlign: 'center', margin: '32px 0' }}>
+        <Link to="/shop">
+          <Button type="primary" size="large" style={{ fontSize: 20, padding: '0 48px' }}>
+            进入商城
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 };

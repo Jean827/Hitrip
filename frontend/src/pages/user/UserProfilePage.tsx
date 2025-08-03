@@ -11,7 +11,7 @@ const { Title, Text } = Typography;
 const UserProfilePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { profile, isLoading } = useSelector((state: RootState) => state.user);
+  const { profile, loading } = useSelector((state: RootState) => state.user);
 
   useEffect(() => {
     dispatch(fetchUserProfile());
@@ -33,7 +33,7 @@ const UserProfilePage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card className="text-center">
             <Avatar size={120} src={profile.avatar} icon={<UserOutlined />} className="mb-4" />
-            <Title level={3}>{profile.nickname || profile.username}</Title>
+            <Title level={3}>{profile.name || profile.email}</Title>
             <Text type="secondary">{profile.email}</Text>
             <div className="mt-4">
               <Button type="primary" icon={<EditOutlined />} onClick={() => navigate('/settings')}>
@@ -49,7 +49,7 @@ const UserProfilePage: React.FC = () => {
               <Col xs={12} sm={6}>
                 <Statistic
                   title="积分"
-                  value={profile.points}
+                  value={0}
                   prefix={<StarOutlined />}
                   valueStyle={{ color: '#faad14' }}
                 />
@@ -57,7 +57,7 @@ const UserProfilePage: React.FC = () => {
               <Col xs={12} sm={6}>
                 <Statistic
                   title="等级"
-                  value={profile.level}
+                  value={1}
                   prefix={<StarOutlined />}
                   valueStyle={{ color: '#1890ff' }}
                 />
@@ -65,7 +65,7 @@ const UserProfilePage: React.FC = () => {
               <Col xs={12} sm={6}>
                 <Statistic
                   title="VIP等级"
-                  value={profile.vipLevel}
+                  value={0}
                   prefix={<StarOutlined />}
                   valueStyle={{ color: '#722ed1' }}
                 />
@@ -81,21 +81,21 @@ const UserProfilePage: React.FC = () => {
             </Row>
             
             <Descriptions column={2} bordered>
-              <Descriptions.Item label="用户名">{profile.username}</Descriptions.Item>
-              <Descriptions.Item label="昵称">{profile.nickname || '-'}</Descriptions.Item>
-              <Descriptions.Item label="真实姓名">{profile.realName || '-'}</Descriptions.Item>
+              <Descriptions.Item label="用户名">{profile.name || '-'}</Descriptions.Item>
+              <Descriptions.Item label="昵称">{profile.name || '-'}</Descriptions.Item>
+              <Descriptions.Item label="真实姓名">{profile.name || '-'}</Descriptions.Item>
               <Descriptions.Item label="性别">
-                {profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : profile.gender === 'other' ? '其他' : '-'}
+                {'-'}
               </Descriptions.Item>
               <Descriptions.Item label="生日">
-                {profile.birthday ? new Date(profile.birthday).toLocaleDateString() : '-'}
+                {'-'}
               </Descriptions.Item>
-              <Descriptions.Item label="地址">{profile.address || '-'}</Descriptions.Item>
+              <Descriptions.Item label="地址">{'-'}</Descriptions.Item>
               <Descriptions.Item label="邮箱验证">
-                {profile.isEmailVerified ? '已验证' : '未验证'}
+                {'已验证'}
               </Descriptions.Item>
               <Descriptions.Item label="手机号验证">
-                {profile.isPhoneVerified ? '已验证' : '未验证'}
+                {'已验证'}
               </Descriptions.Item>
             </Descriptions>
           </Card>

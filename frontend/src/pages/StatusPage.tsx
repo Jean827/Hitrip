@@ -49,7 +49,7 @@ const StatusPage: React.FC = () => {
     }
   ]);
 
-  const [modules, setModules] = useState<ModuleStatus[]>([
+  const [modules] = useState<ModuleStatus[]>([
     {
       name: '用户认证系统',
       status: 'completed',
@@ -158,7 +158,7 @@ const StatusPage: React.FC = () => {
           return service;
         })
       );
-      setServices(updatedServices);
+      setServices(updatedServices as ServiceStatus[]);
     };
 
     updateServiceStatus();

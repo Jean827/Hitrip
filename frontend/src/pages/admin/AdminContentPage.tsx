@@ -19,12 +19,10 @@ import {
   Image,
   Row,
   Col,
-  Upload,
   DatePicker,
-  Switch,
   Rate,
   Statistic,
-  Progress
+  Avatar
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -33,23 +31,18 @@ import {
   EyeOutlined,
   CheckOutlined,
   CloseOutlined,
-  UploadOutlined,
-  PictureOutlined,
-  FileTextOutlined,
-  StarOutlined,
-  EyeOutlined as ViewOutlined,
   FilterOutlined,
   ExportOutlined,
   ImportOutlined,
   SearchOutlined,
-  SettingOutlined
+  UserOutlined
 } from '@ant-design/icons';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
 
 const { Option } = Select;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
-const { RangePicker } = DatePicker;
+
 
 interface Attraction {
   _id: string;
@@ -313,20 +306,7 @@ const AdminContentPage: React.FC = () => {
     }
   ];
 
-  // 统计数据
-  const contentStats = [
-    { name: '景点总数', value: 156, color: '#8884d8' },
-    { name: '已发布', value: 142, color: '#82ca9d' },
-    { name: '待审核', value: 8, color: '#ffc658' },
-    { name: '草稿', value: 6, color: '#ff7300' }
-  ];
 
-  const newsStats = [
-    { name: '文章总数', value: 89, color: '#8884d8' },
-    { name: '已发布', value: 76, color: '#82ca9d' },
-    { name: '待审核', value: 7, color: '#ffc658' },
-    { name: '草稿', value: 6, color: '#ff7300' }
-  ];
 
   useEffect(() => {
     fetchData();
@@ -365,7 +345,7 @@ const AdminContentPage: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (_id: string) => {
     try {
       // TODO: 调用API删除内容
       message.success('删除成功');
@@ -375,7 +355,7 @@ const AdminContentPage: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: string, status: string) => {
+  const handleStatusChange = async (_id: string, _status: string) => {
     try {
       // TODO: 调用API更新状态
       message.success('状态更新成功');
@@ -385,7 +365,7 @@ const AdminContentPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (_values: any) => {
     try {
       if (editingItem) {
         // TODO: 调用API更新内容

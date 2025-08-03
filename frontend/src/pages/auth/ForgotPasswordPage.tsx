@@ -5,7 +5,7 @@ import { MailOutlined } from '@ant-design/icons';
 const ForgotPasswordPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (_values: any) => {
     try {
       // TODO: 实现忘记密码功能
       message.success('重置密码邮件已发送，请检查您的邮箱');

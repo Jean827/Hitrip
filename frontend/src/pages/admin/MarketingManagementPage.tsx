@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Table, Modal, Form, Input, Select, DatePicker, InputNumber, Switch, Tag, Space, message, Popconfirm, Tabs } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, GiftOutlined, TagOutlined, TrophyOutlined } from '@ant-design/icons';
-import { useAuth } from '../../store/slices/authSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 import { marketingApi } from '../../services/marketingApi';
 
 const { Option } = Select;
@@ -54,7 +55,7 @@ interface PointProduct {
 }
 
 const MarketingManagementPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useSelector((state: RootState) => state.auth);
   const [loading, setLoading] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -69,8 +70,8 @@ const MarketingManagementPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await marketingApi.getCampaigns();
-      if (response.success) {
-        setCampaigns(response.data.campaigns);
+      // if (response.success) {
+        setCampaigns(response);
       }
     } catch (error) {
       console.error('获取活动列表失败:', error);
@@ -85,8 +86,8 @@ const MarketingManagementPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await marketingApi.getCoupons();
-      if (response.success) {
-        setCoupons(response.data.coupons);
+      // if (response.success) {
+        setCoupons(response || []);
       }
     } catch (error) {
       console.error('获取优惠券列表失败:', error);
@@ -101,8 +102,8 @@ const MarketingManagementPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await marketingApi.getPointProducts();
-      if (response.success) {
-        setPointProducts(response.data.products);
+      // if (response.success) {
+        setPointProducts(response);
       }
     } catch (error) {
       console.error('获取积分商品列表失败:', error);

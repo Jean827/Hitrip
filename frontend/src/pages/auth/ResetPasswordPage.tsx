@@ -5,7 +5,7 @@ import { LockOutlined } from '@ant-design/icons';
 const ResetPasswordPage: React.FC = () => {
   const [form] = Form.useForm();
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (_values: any) => {
     try {
       // TODO: 实现重置密码功能
       message.success('密码重置成功');

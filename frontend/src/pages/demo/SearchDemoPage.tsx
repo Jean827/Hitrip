@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Row, Col, Typography, Space, Button, Switch, Divider } from 'antd';
-import { SearchOutlined, MobileOutlined, DesktopOutlined, WifiOutlined, WifiOffOutlined } from '@ant-design/icons';
+import { SearchOutlined, MobileOutlined, DesktopOutlined, WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
 import SearchComponent from '../../components/SearchComponent';
 import MobileSearchPage from '../shop/MobileSearchPage';
 import './SearchDemoPage.css';
@@ -60,7 +60,7 @@ const SearchDemoPage: React.FC = () => {
                 <Switch
                   checked={isOfflineMode}
                   onChange={toggleOfflineMode}
-                  checkedChildren={<WifiOffOutlined />}
+                  checkedChildren={<DisconnectOutlined />}
                   unCheckedChildren={<WifiOutlined />}
                 />
               </div>

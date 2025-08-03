@@ -1,13 +1,8 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
-import { Provider } from 'react-redux';
-import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
-
-// 导入Redux store
-import { store } from './store';
 
 // 导入页面组件
 import LoginPage from './pages/auth/LoginPage';
@@ -53,25 +48,11 @@ import AdminLayout from './components/layout/AdminLayout';
 // 导入样式
 import './App.css';
 
-// 创建React Query客户端
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5分钟
-    },
-  },
-});
-
 function App() {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ConfigProvider locale={zhCN}>
-          <Router>
-            <div className="App">
-              <Routes>
+    <ConfigProvider locale={zhCN}>
+      <div className="App">
+        <Routes>
                 {/* 认证相关路由 */}
                 <Route path="/auth" element={<AuthLayout />}>
                   <Route path="login" element={<LoginPage />} />
@@ -92,7 +73,7 @@ function App() {
 
                 {/* 主要应用路由 */}
                 <Route path="/" element={<MainLayout />}>
-                  <Route index element={<HomePage />} />
+                  <Route index element={<PortalHomePage />} />
                   <Route path="profile" element={<UserProfilePage />} />
                   <Route path="settings" element={<UserSettingsPage />} />
                   {/* <Route path="points/history" element={<PointsHistoryPage />} /> */}
@@ -143,11 +124,8 @@ function App() {
                 }}
               />
             </div>
-          </Router>
-        </ConfigProvider>
-      </QueryClientProvider>
-    </Provider>
-  );
-}
+          </ConfigProvider>
+        );
+      }
 
 export default App; 

@@ -25,7 +25,8 @@ import {
   Statistic,
   Progress,
   Alert,
-  Divider
+  Divider,
+  List
 } from 'antd';
 import { 
   PlusOutlined, 
@@ -44,7 +45,8 @@ import {
   KeyOutlined,
   UserOutlined,
   MenuOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
 
@@ -527,8 +529,8 @@ const AdminSettingsPage: React.FC = () => {
       title: '公开',
       dataIndex: 'isPublic',
       key: 'isPublic',
-      render: (public: boolean) => (
-        <Badge status={public ? 'success' : 'default'} text={public ? '是' : '否'} />
+      render: (isPublic: boolean) => (
+        <Badge status={isPublic ? 'success' : 'default'} text={isPublic ? '是' : '否'} />
       )
     },
     {

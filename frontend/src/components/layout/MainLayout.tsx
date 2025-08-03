@@ -42,11 +42,11 @@ const MainLayout: React.FC = () => {
                 <span className="text-xl font-bold text-blue-600">海南文旅</span>
               </Link>
               <div className="hidden md:ml-6 md:flex md:space-x-8">
-                <Link to="/" className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                  首页
-                </Link>
                 <Link to="/portal" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   门户网站
+                </Link>
+                <Link to="/shop" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                  商城
                 </Link>
                 <Link to="/attractions" className="text-gray-500 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   景点探索

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Input, Select, Slider, Pagination, Spin, message, Empty, Tag, Button } from 'antd';
-import { SearchOutlined, ShoppingCartOutlined, StarOutlined, FilterOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -224,7 +224,7 @@ const ProductListPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px' }}>
                 {product.tags.slice(0, 2).map((tag, index) => (
-                  <Tag key={index} color="blue" size="small">
+                  <Tag key={index} color="blue">
                     {tag}
                   </Tag>
                 ))}
@@ -289,7 +289,7 @@ const ProductListPage: React.FC = () => {
                 min={0}
                 max={10000}
                 value={priceRange}
-                onChange={handlePriceRangeChange}
+                onChange={(value: number[]) => handlePriceRangeChange(value as [number, number])}
                 style={{ width: '100%' }}
               />
             </div>
